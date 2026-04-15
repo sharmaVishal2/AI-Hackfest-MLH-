@@ -87,17 +87,8 @@ Frontend runs on `http://localhost:5173`.
 ### Backend on Render
 
 - Create a new `Web Service` from this repository or use `render.yaml`.
-- Render build command:
-
-```bash
-mvn -DskipTests package
-```
-
-- Render start command:
-
-```bash
-java -jar target/smart-career-assistant-1.0.0.jar
-```
+- Choose the `Docker` environment.
+- Render will build from the root `Dockerfile`.
 
 - Set these Render environment variables:
 

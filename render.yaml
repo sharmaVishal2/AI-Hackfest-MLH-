@@ -1,11 +1,10 @@
 services:
   - type: web
     name: smart-career-assistant-backend
-    runtime: java
+    runtime: docker
     plan: free
     rootDir: .
-    buildCommand: mvn -DskipTests package
-    startCommand: java -jar target/smart-career-assistant-1.0.0.jar
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: MONGODB_URI
