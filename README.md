@@ -86,7 +86,7 @@ Frontend runs on `http://localhost:5173`.
 
 ### Backend on Render
 
-- Create a new `Web Service` from this repository or use [`render.yaml`](C:/Users/lenov/OneDrive/Desktop/AI%20Hackfest%20MLH/render.yaml).
+- Create a new `Web Service` from this repository or use `render.yaml`.
 - Render build command:
 
 ```bash
