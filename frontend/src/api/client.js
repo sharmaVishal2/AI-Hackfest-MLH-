@@ -5,6 +5,10 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  const url = config.url || '';
+  if (url.startsWith('/api/guest') || url.startsWith('/guest') || url.startsWith('/api/auth') || url.startsWith('/auth')) {
+    return config;
+  }
   const token = localStorage.getItem('smarthire_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
