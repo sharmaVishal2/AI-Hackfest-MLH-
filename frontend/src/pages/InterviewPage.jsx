@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Mic, Send } from 'lucide-react';
 import AppShell from '../components/AppShell.jsx';
-import { interviewDetail, startInterview, submitAnswer } from '../api/client.js';
+import { guestInterviewDetail, interviewDetail, startGuestInterview, startInterview, submitAnswer, submitGuestAnswer } from '../api/client.js';
 import { createInterviewSocket } from '../api/socket.js';
+import { useAuth } from '../auth/AuthContext.jsx';
 import { formatTimer } from '../utils/date.js';
 
 export default function InterviewPage() {
@@ -16,6 +17,8 @@ export default function InterviewPage() {
   const [seconds, setSeconds] = useState(0);
   const [loading, setLoading] = useState(false);
   const socketRef = useRef(null);
+  const { user } = useAuth();
+  const isGuest = !user;
 
   useEffect(() => {
     const timer = setInterval(() => setSeconds((value) => value + 1), 1000);
@@ -23,26 +26,35 @@ export default function InterviewPage() {
   }, []);
 
   useEffect(() => {
+    if (isGuest && !localStorage.getItem('smarthire_guest_session')) {
+      navigate('/upload', { replace: true });
+    }
+  }, [isGuest, navigate]);
+
+  useEffect(() => {
     if (session || id) return;
-    startInterview().then((data) => {
-      setSession(data);
+    const starter = isGuest ? startGuestInterview : startInterview;
+    starter().then((data) => {
+      setSession({ ...data, mode: isGuest ? 'guest' : 'auth' });
       navigate(`/interview/${data.interviewId}`, { replace: true, state: data });
     });
-  }, [session, id, navigate]);
+  }, [session, id, navigate, isGuest]);
 
   useEffect(() => {
     if (session || !id) return;
-    interviewDetail(id).then((data) => setSession({ interviewId: data.id, questions: data.questions }));
-  }, [session, id]);
+    const loader = isGuest ? guestInterviewDetail : interviewDetail;
+    loader(id).then((data) => setSession({ interviewId: data.id || data.interviewId, questions: data.questions, mode: isGuest ? 'guest' : 'auth' }))
+      .catch(() => navigate(isGuest ? '/upload' : '/'));
+  }, [session, id, isGuest, navigate]);
 
   useEffect(() => {
     const interviewId = session?.interviewId;
-    if (!interviewId) return;
+    if (!interviewId || isGuest) return;
     socketRef.current = createInterviewSocket(interviewId, (updated) => {
       setSession((current) => ({ ...current, questions: current.questions.map((q) => q.id === updated.id ? updated : q) }));
     });
     return () => socketRef.current?.deactivate();
-  }, [session?.interviewId]);
+  }, [session?.interviewId, isGuest]);
 
   const question = useMemo(() => session?.questions?.[index], [session, index]);
   const complete = session?.questions?.every((q) => q.answer);
@@ -51,7 +63,9 @@ export default function InterviewPage() {
     if (!answer.trim() || !question) return;
     setLoading(true);
     try {
-      const updated = await submitAnswer(session.interviewId, { questionId: question.id, answer });
+      const updated = isGuest
+        ? await submitGuestAnswer(session.interviewId, { questionId: question.id, answer })
+        : await submitAnswer(session.interviewId, { questionId: question.id, answer });
       setSession({ ...session, questions: session.questions.map((q) => q.id === updated.id ? updated : q) });
       setAnswer('');
       if (index < session.questions.length - 1) setIndex(index + 1);
@@ -77,7 +91,7 @@ export default function InterviewPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-950">Interview Session</h1>
-          <p className="text-slate-500">Question {index + 1} of {session.questions.length}</p>
+          <p className="text-slate-500">Question {index + 1} of {session.questions.length}{isGuest ? ' - Guest mode' : ''}</p>
         </div>
         <div className="rounded-md bg-slate-950 px-4 py-2 font-bold text-white">{formatTimer(seconds)}</div>
       </div>
@@ -92,6 +106,7 @@ export default function InterviewPage() {
           <button onClick={() => setIndex(Math.min(index + 1, session.questions.length - 1))} className="rounded-md border border-slate-300 px-4 py-3 font-bold text-slate-700">Next</button>
         </div>
       </section>
+      {isGuest && <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Login to save this score and keep interview history after refresh.</div>}
       {complete && <button onClick={() => navigate(`/results/${session.interviewId}`)} className="mt-5 rounded-md bg-slate-950 px-4 py-3 font-bold text-white">View Results</button>}
     </AppShell>
   );

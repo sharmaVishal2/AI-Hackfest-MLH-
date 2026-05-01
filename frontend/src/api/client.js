@@ -27,4 +27,18 @@ export const interviewDetail = (id) => api.get(`/api/interviews/${id}`).then((r)
 export const interviewHistory = () => api.get('/api/interviews').then((r) => r.data);
 export const dashboardStats = () => api.get('/api/interviews/stats').then((r) => r.data);
 
+const guestHeaders = () => ({ 'X-Guest-Session': localStorage.getItem('smarthire_guest_session') });
+
+export const createGuestSession = () => api.post('/api/guest/sessions').then((r) => r.data);
+export const uploadGuestResume = (file) => {
+  const data = new FormData();
+  data.append('file', file);
+  return api.post('/api/guest/resumes', data, {
+    headers: { ...guestHeaders(), 'Content-Type': 'multipart/form-data' },
+  }).then((r) => r.data);
+};
+export const startGuestInterview = () => api.post('/api/guest/interviews/start', null, { headers: guestHeaders() }).then((r) => r.data);
+export const submitGuestAnswer = (interviewId, payload) => api.post(`/api/guest/interviews/${interviewId}/answers`, payload, { headers: guestHeaders() }).then((r) => r.data);
+export const guestInterviewDetail = (id) => api.get(`/api/guest/interviews/${id}`, { headers: guestHeaders() }).then((r) => r.data);
+
 export default api;

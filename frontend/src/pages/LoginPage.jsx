@@ -18,6 +18,7 @@ export default function LoginPage() {
     try {
       if (mode === 'login') await login({ email: form.email, password: form.password });
       else await register(form);
+      localStorage.setItem('smarthire_mode', 'auth');
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Authentication failed');

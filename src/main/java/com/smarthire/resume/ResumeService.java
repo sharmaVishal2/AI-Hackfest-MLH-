@@ -17,8 +17,7 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final Tika tika = new Tika();
 
-    @Transactional
-    public ResumeResponse upload(User user, MultipartFile file) {
+    public String extractText(MultipartFile file) {
         if (file.isEmpty() || file.getOriginalFilename() == null || !file.getOriginalFilename().toLowerCase().endsWith(".pdf")) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Upload a valid PDF resume");
         }
@@ -27,16 +26,22 @@ public class ResumeService {
             if (extracted.length() < 50) {
                 throw new AppException(HttpStatus.BAD_REQUEST, "Could not extract enough text from the PDF");
             }
-            Resume resume = new Resume();
-            resume.setUser(user);
-            resume.setFileName(file.getOriginalFilename());
-            resume.setExtractedText(extracted);
-            return ResumeResponse.from(resumeRepository.save(resume));
+            return extracted;
         } catch (AppException exception) {
             throw exception;
         } catch (Exception exception) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Failed to parse resume PDF");
         }
+    }
+
+    @Transactional
+    public ResumeResponse upload(User user, MultipartFile file) {
+        String extracted = extractText(file);
+        Resume resume = new Resume();
+        resume.setUser(user);
+        resume.setFileName(file.getOriginalFilename());
+        resume.setExtractedText(extracted);
+        return ResumeResponse.from(resumeRepository.save(resume));
     }
 
     @Transactional(readOnly = true)

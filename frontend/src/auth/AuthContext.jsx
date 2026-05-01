@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
     },
     logout() {
       localStorage.removeItem('smarthire_token');
+      localStorage.removeItem('smarthire_mode');
       setUser(null);
     },
   }), [user, loading]);

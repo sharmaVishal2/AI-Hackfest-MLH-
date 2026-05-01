@@ -6,13 +6,14 @@ This repository was migrated from the old Smart Career Assistant project to Smar
 
 ## Features
 
-- Secure register/login with Spring Security and JWT
+- Guest mode with no login required for resume upload, mock interviews, and AI feedback
+- Secure register/login with Spring Security and JWT for saved history
 - PDF resume upload and text extraction with Apache Tika
 - Resume-context prompt building for RAG-inspired question generation
 - Groq/OpenAI-compatible LLM integration using the existing `GROQ_API_KEY`
 - Real-time interview flow with STOMP over SockJS
 - AI answer evaluation with score and feedback
-- Interview history and dashboard analytics
+- Interview history and dashboard analytics for logged-in users
 - React protected routes, loading states, timer, and browser speech-to-text
 
 ## Tech Stack
@@ -124,6 +125,11 @@ VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `POST /api/guest/sessions`
+- `POST /api/guest/resumes`
+- `POST /api/guest/interviews/start`
+- `POST /api/guest/interviews/{id}/answers`
+- `GET /api/guest/interviews/{id}`
 - `GET /api/users/me`
 - `PUT /api/users/me`
 - `POST /api/resumes`
@@ -136,6 +142,8 @@ VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
 - WebSocket endpoint: `/ws`
 - WebSocket app destination: `/app/interviews/{id}/answers`
 - WebSocket topic: `/topic/interviews/{id}`
+
+Guest routes are public and store interview data in memory by `X-Guest-Session`. Authenticated routes require a JWT and persist to PostgreSQL.
 
 ## Database Tables
 

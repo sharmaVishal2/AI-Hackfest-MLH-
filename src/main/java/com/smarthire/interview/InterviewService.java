@@ -38,7 +38,7 @@ public class InterviewService {
             interview.getQuestions().add(question);
         }
         Interview saved = interviewRepository.save(interview);
-        return new StartInterviewResponse(saved.getId(), saved.getQuestions().stream().map(QuestionResponse::from).toList());
+        return new StartInterviewResponse(saved.getId().toString(), saved.getQuestions().stream().map(QuestionResponse::from).toList());
     }
 
     @Transactional
