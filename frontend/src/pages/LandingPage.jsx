@@ -5,10 +5,12 @@ import { createGuestSession } from '../api/client.js';
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   async function tryGuest() {
     setLoading(true);
+    setError('');
     try {
       const session = await createGuestSession();
       localStorage.setItem('smarthire_guest_session', session.sessionId);
@@ -16,6 +18,8 @@ export default function LandingPage() {
       localStorage.setItem('smarthire_guest_used', String(session.usedInterviews));
       localStorage.setItem('smarthire_guest_max', String(session.maxInterviews));
       navigate('/upload');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Guest mode is unavailable. Check backend deployment and API URL.');
     } finally {
       setLoading(false);
     }
@@ -51,6 +55,7 @@ export default function LandingPage() {
                   <LogIn size={18} /> Login / Register
                 </button>
               </div>
+              {error && <div className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
             </div>
           </div>
         </div>
