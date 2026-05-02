@@ -26,8 +26,9 @@ export const uploadResume = (file) => {
   return api.post('/api/resumes', data, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
 };
 export const listResumes = () => api.get('/api/resumes').then((r) => r.data);
-export const startInterview = () => api.post('/api/interviews/start').then((r) => r.data);
-export const submitAnswer = (interviewId, payload) => api.post(`/api/interviews/${interviewId}/answers`, payload).then((r) => r.data);
+const aiRequestOptions = { timeout: 60000 };
+export const startInterview = () => api.post('/api/interviews/start', null, aiRequestOptions).then((r) => r.data);
+export const submitAnswer = (interviewId, payload) => api.post(`/api/interviews/${interviewId}/answers`, payload, aiRequestOptions).then((r) => r.data);
 export const interviewDetail = (id) => api.get(`/api/interviews/${id}`).then((r) => r.data);
 export const interviewHistory = () => api.get('/api/interviews').then((r) => r.data);
 export const dashboardStats = () => api.get('/api/interviews/stats').then((r) => r.data);
@@ -52,8 +53,8 @@ export const uploadGuestResume = (file) => {
     headers: { ...guestHeaders(), 'Content-Type': 'multipart/form-data' },
   }).then((r) => r.data);
 };
-export const startGuestInterview = () => api.post('/api/guest/interviews/start', null, { headers: guestHeaders() }).then((r) => r.data);
-export const submitGuestAnswer = (interviewId, payload) => api.post(`/api/guest/interviews/${interviewId}/answers`, payload, { headers: guestHeaders() }).then((r) => r.data);
+export const startGuestInterview = () => api.post('/api/guest/interviews/start', null, { ...aiRequestOptions, headers: guestHeaders() }).then((r) => r.data);
+export const submitGuestAnswer = (interviewId, payload) => api.post(`/api/guest/interviews/${interviewId}/answers`, payload, { ...aiRequestOptions, headers: guestHeaders() }).then((r) => r.data);
 export const guestInterviewDetail = (id) => api.get(`/api/guest/interviews/${id}`, { headers: guestHeaders() }).then((r) => r.data);
 
 export default api;

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Mic, Send } from 'lucide-react';
 import AppShell from '../components/AppShell.jsx';
-import { guestInterviewDetail, interviewDetail, startGuestInterview, startInterview, submitAnswer, submitGuestAnswer } from '../api/client.js';
+import { apiErrorMessage, guestInterviewDetail, interviewDetail, startGuestInterview, startInterview, submitAnswer, submitGuestAnswer } from '../api/client.js';
 import { createInterviewSocket } from '../api/socket.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { formatTimer } from '../utils/date.js';
@@ -16,6 +16,7 @@ export default function InterviewPage() {
   const [answer, setAnswer] = useState('');
   const [seconds, setSeconds] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
   const socketRef = useRef(null);
   const { user } = useAuth();
   const isGuest = !user;
@@ -37,6 +38,8 @@ export default function InterviewPage() {
     starter().then((data) => {
       setSession({ ...data, mode: isGuest ? 'guest' : 'auth' });
       navigate(`/interview/${data.interviewId}`, { replace: true, state: data });
+    }).catch((err) => {
+      setMessage(apiErrorMessage(err, 'Could not start interview'));
     });
   }, [session, id, navigate, isGuest]);
 
@@ -84,7 +87,12 @@ export default function InterviewPage() {
     recognition.start();
   }
 
-  if (!question) return <AppShell><div className="text-slate-600">Preparing resume-driven questions...</div></AppShell>;
+  if (!question) return (
+    <AppShell>
+      <div className="text-slate-600">Preparing resume-driven questions...</div>
+      {message && <div className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{message}</div>}
+    </AppShell>
+  );
 
   return (
     <AppShell>
